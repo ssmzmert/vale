@@ -14,7 +14,7 @@ export async function GET() {
   }
 
   await connectToDatabase();
-  let places;
+  let places: any[] = [];
   if ((session.user as any).role === "ADMIN") {
     places = await Place.find({ active: true }).sort({ name: 1 }).lean();
   } else {
