@@ -6,9 +6,9 @@ if (!process.env.MONGODB_URI) {
   loadEnvConfig(process.cwd());
 }
 
-const MONGODB_URI = process.env.MONGODB_URI;
+const DB_URI = process.env.MONGODB_URI as string;
 
-if (!MONGODB_URI) {
+if (!DB_URI) {
   throw new Error("MONGODB_URI environment variable eksik");
 }
 
@@ -28,7 +28,7 @@ export async function connectToDatabase() {
   if (cached.conn) return cached.conn;
 
   if (!cached.promise) {
-    cached.promise = mongoose.connect(MONGODB_URI);
+    cached.promise = mongoose.connect(DB_URI);
   }
 
   cached.conn = await cached.promise;
