@@ -2,6 +2,8 @@ import CredentialsProvider from "next-auth/providers/credentials";
 import type { NextAuthOptions, User } from "next-auth";
 import { connectToDatabase } from "./mongodb";
 import { User as UserModel } from "@/models/User";
+// Ensure Place model is registered before populate is used
+import "@/models/Place";
 import bcrypt from "bcryptjs";
 import { getServerSession } from "next-auth";
 import type { SessionUser } from "./types";
