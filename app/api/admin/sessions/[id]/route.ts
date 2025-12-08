@@ -16,11 +16,12 @@ async function ensureAdmin() {
 
 export async function PATCH(
   req: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const session = await ensureAdmin();
   if (!session) return NextResponse.json({ error: "Yetkisiz" }, { status: 401 });
 
+  const { id } = await params;
   const body = await req.json();
   const { paymentMethod, pricingTier, feeCents, plateNumber } = body as {
     paymentMethod?: "CASH" | "CARD";
@@ -30,7 +31,7 @@ export async function PATCH(
   };
 
   await connectToDatabase();
-  const record = await ParkingSession.findById(params.id);
+  const record = await ParkingSession.findById(id);
   if (!record) return NextResponse.json({ error: "Kayıt bulunamadı" }, { status: 404 });
 
   if (paymentMethod) record.paymentMethod = paymentMethod;
@@ -48,13 +49,14 @@ export async function PATCH(
 
 export async function DELETE(
   req: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const session = await ensureAdmin();
   if (!session) return NextResponse.json({ error: "Yetkisiz" }, { status: 401 });
 
+  const { id } = await params;
   await connectToDatabase();
-  const record = await ParkingSession.findById(params.id);
+  const record = await ParkingSession.findById(id);
   if (!record) return NextResponse.json({ error: "Kayıt bulunamadı" }, { status: 404 });
 
   await record.deleteOne();

@@ -7,12 +7,17 @@ import { PricingConfig } from "@/models/PricingConfig";
 
 export const runtime = "nodejs";
 
-export default async function CheckoutPage({ params }: { params: { id: string } }) {
+export default async function CheckoutPage({
+  params
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  const { id } = await params;
   const session = await getServerAuthSession();
   if (!session?.user) redirect("/giris");
 
   await connectToDatabase();
-  const parking = await ParkingSession.findById(params.id)
+  const parking = await ParkingSession.findById(id)
     .populate("checkinOperator", "name")
     .lean();
 
