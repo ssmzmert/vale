@@ -15,10 +15,11 @@ export async function POST(req: Request) {
   }
 
   const body = await req.json();
-  const { sessionId, paymentMethod, pricingTier } = body as {
+  const { sessionId, paymentMethod, pricingTier, tipCents } = body as {
     sessionId?: string;
     paymentMethod?: "CASH" | "CARD";
     pricingTier?: "STANDARD" | "BRONZE" | "SILVER" | "GOLD";
+    tipCents?: number;
   };
 
   if (!sessionId || !paymentMethod) {
@@ -60,11 +61,16 @@ export async function POST(req: Request) {
   );
   const selectedTier = pricingTier || "STANDARD";
   const { feeCents } = calculateFee(durationMinutes, config, selectedTier);
+  const cleanTipCents =
+    typeof tipCents === "number" && Number.isFinite(tipCents) && tipCents > 0
+      ? Math.round(tipCents)
+      : 0;
 
   parking.checkoutOperator = session.user.id as any;
   parking.checkoutAt = checkoutAt;
   parking.durationMinutes = durationMinutes;
   parking.feeCents = feeCents;
+  parking.tipCents = cleanTipCents;
   parking.paymentMethod = paymentMethod;
   parking.paymentCollected = true;
   parking.paymentCollectedAt = new Date();

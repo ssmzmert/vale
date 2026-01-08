@@ -63,6 +63,7 @@ export function DashboardClient({
     "STANDARD" | "BRONZE" | "SILVER" | "GOLD"
   >("STANDARD");
   const [editFee, setEditFee] = useState(0);
+  const [editTip, setEditTip] = useState(0);
   const [savingEdit, setSavingEdit] = useState(false);
   const [places, setPlaces] = useState<PlaceOption[]>([]);
   const [placesLoading, setPlacesLoading] = useState(false);
@@ -112,6 +113,7 @@ export function DashboardClient({
     setEditPayment(s.paymentMethod || "CASH");
     setEditTier(s.pricingTier || "STANDARD");
     setEditFee(Math.round((s.feeCents || 0) / 100));
+    setEditTip(Math.round((s.tipCents || 0) / 100));
   };
 
   const saveEdit = async () => {
@@ -125,6 +127,7 @@ export function DashboardClient({
         paymentMethod: editPayment,
         pricingTier: editTier,
         feeCents: Math.round(editFee * 100),
+        tipCents: Math.round(editTip * 100),
       }),
     });
     setSavingEdit(false);
@@ -197,6 +200,8 @@ export function DashboardClient({
     if (!data) return 1;
     return Math.max(1, Math.ceil(data.totalSessions / data.limit));
   }, [data]);
+
+  const totalWithTip = (s: any) => (s.feeCents || 0) + (s.tipCents || 0);
 
   return (
     <div className="space-y-6">
@@ -327,7 +332,7 @@ export function DashboardClient({
                 <th className="py-2">Operatör</th>
                 <th className="py-2">Araç</th>
                 <th className="py-2">Süre</th>
-                <th className="py-2">Ücret</th>
+                <th className="py-2">Toplam</th>
               </tr>
             </thead>
             <tbody>
@@ -361,7 +366,7 @@ export function DashboardClient({
                 <th className="py-2">Giriş</th>
                 <th className="py-2">Çıkış</th>
                 <th className="py-2">Süre</th>
-                <th className="py-2">Ücret</th>
+                <th className="py-2">Toplam</th>
                 <th className="py-2">Ödeme</th>
                 <th className="py-2">Tarife</th>
                 <th className="py-2">Giriş Operatörü</th>
@@ -378,7 +383,7 @@ export function DashboardClient({
                   <td className="py-2">{formatDateTime(s.checkinAt)}</td>
                   <td className="py-2">{formatDateTime(s.checkoutAt)}</td>
                   <td className="py-2">{formatDuration(s.durationMinutes)}</td>
-                  <td className="py-2">{formatTL(s.feeCents)}</td>
+                  <td className="py-2">{formatTL(totalWithTip(s))}</td>
                   <td className="py-2">
                     {s.paymentMethod == "CASH" ? "NAKİT" : "KREDI KARTI"}
                   </td>
@@ -488,6 +493,17 @@ export function DashboardClient({
                   step="1"
                   value={editFee}
                   onChange={(e) => setEditFee(Number(e.target.value))}
+                  className="w-full mt-1 border rounded-lg px-3 py-2"
+                />
+              </div>
+              <div>
+                <label className="text-sm text-gray-600">Bahşiş (TL)</label>
+                <input
+                  type="number"
+                  min="0"
+                  step="1"
+                  value={editTip}
+                  onChange={(e) => setEditTip(Number(e.target.value))}
                   className="w-full mt-1 border rounded-lg px-3 py-2"
                 />
               </div>

@@ -68,7 +68,9 @@ export async function GET(req: Request) {
       $group: {
         _id: null,
         totalCount: { $sum: 1 },
-        totalRevenue: { $sum: "$feeCents" },
+        totalRevenue: {
+          $sum: { $add: [{ $ifNull: ["$feeCents", 0] }, { $ifNull: ["$tipCents", 0] }] }
+        },
         totalDuration: { $sum: "$durationMinutes" }
       }
     }
@@ -80,7 +82,9 @@ export async function GET(req: Request) {
       $group: {
         _id: "$checkoutOperator",
         cars: { $sum: 1 },
-        totalFees: { $sum: "$feeCents" },
+        totalFees: {
+          $sum: { $add: [{ $ifNull: ["$feeCents", 0] }, { $ifNull: ["$tipCents", 0] }] }
+        },
         totalDuration: { $sum: "$durationMinutes" }
       }
     },

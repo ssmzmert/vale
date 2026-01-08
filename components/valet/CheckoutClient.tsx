@@ -38,6 +38,8 @@ export function CheckoutClient({
   const [pricingTier, setPricingTier] = useState<
     "STANDARD" | "BRONZE" | "SILVER" | "GOLD"
   >("STANDARD");
+  const [tipEnabled, setTipEnabled] = useState(false);
+  const [tipAmount, setTipAmount] = useState("");
   const [processing, setProcessing] = useState(false);
   const [durationMinutes, setDurationMinutes] = useState(() =>
     Math.max(
@@ -64,13 +66,24 @@ export function CheckoutClient({
     () => calculateFee(durationMinutes, pricing as any, pricingTier),
     [durationMinutes, pricing, pricingTier]
   );
+  const tipCents = useMemo(() => {
+    if (!tipEnabled) return 0;
+    const parsed = Number(tipAmount);
+    if (!Number.isFinite(parsed) || parsed <= 0) return 0;
+    return Math.round(parsed * 100);
+  }, [tipAmount, tipEnabled]);
 
   const handleCheckout = async () => {
     setProcessing(true);
     const res = await fetch("/api/parking/checkout", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ sessionId: session._id, paymentMethod, pricingTier }),
+      body: JSON.stringify({
+        sessionId: session._id,
+        paymentMethod,
+        pricingTier,
+        tipCents: tipEnabled ? tipCents : 0
+      }),
     });
     if (!res.ok) {
       setProcessing(false);
@@ -109,6 +122,14 @@ export function CheckoutClient({
           <div className="p-4 border rounded-lg bg-primary/10 text-primary">
             <p className="text-xs uppercase">Hesaplanan Ücret</p>
             <p className="text-xl font-bold">{formatTL(feeResult.feeCents)}</p>
+            {tipEnabled && (
+              <div className="text-sm text-primary/80 mt-2 space-y-1">
+                <p>Bahşiş: {formatTL(tipCents)}</p>
+                <p className="font-semibold">
+                  Toplam: {formatTL(feeResult.feeCents + tipCents)}
+                </p>
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -134,7 +155,35 @@ export function CheckoutClient({
               {tier.label}
             </button>
           ))}
+          <button
+            type="button"
+            onClick={() => setTipEnabled((current) => !current)}
+            className={`px-4 py-2 rounded-lg border ${
+              tipEnabled
+                ? "border-primary bg-primary/10 text-primary"
+                : "border-gray-200"
+            }`}
+          >
+            Bahşiş
+          </button>
         </div>
+        {tipEnabled && (
+          <div className="max-w-xs">
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Bahşiş Tutarı (TL)
+            </label>
+            <input
+              type="number"
+              inputMode="decimal"
+              min="0"
+              step="0.01"
+              placeholder="0,00"
+              value={tipAmount}
+              onChange={(event) => setTipAmount(event.target.value)}
+              className="w-full rounded-lg border border-gray-200 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary/30"
+            />
+          </div>
+        )}
         <h3 className="text-lg font-semibold">Ödeme Yöntemi</h3>
         <div className="flex gap-3">
           {["CASH", "CARD"].map((method) => (

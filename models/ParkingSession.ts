@@ -11,6 +11,7 @@ export interface IParkingSession {
   checkoutAt?: Date;
   durationMinutes?: number;
   feeCents?: number;
+  tipCents?: number;
   paymentMethod?: "CASH" | "CARD";
   paymentCollected: boolean;
   paymentCollectedAt?: Date;
@@ -28,6 +29,7 @@ const ParkingSessionSchema = new Schema<IParkingSession>({
   checkoutAt: { type: Date },
   durationMinutes: { type: Number },
   feeCents: { type: Number },
+  tipCents: { type: Number, default: 0 },
   paymentMethod: { type: String, enum: ["CASH", "CARD"] },
   paymentCollected: { type: Boolean, default: false },
   paymentCollectedAt: { type: Date },

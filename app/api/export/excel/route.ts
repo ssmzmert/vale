@@ -60,6 +60,8 @@ export async function GET(req: Request) {
     { header: "Çıkış", key: "checkoutAt", width: 20 },
     { header: "Süre (dk)", key: "durationMinutes", width: 12 },
     { header: "Ücret (TL)", key: "fee", width: 14 },
+    { header: "Bahşiş (TL)", key: "tip", width: 14 },
+    { header: "Toplam (TL)", key: "total", width: 14 },
     { header: "Ödeme", key: "paymentMethod", width: 12 },
     { header: "Tarife", key: "pricingTier", width: 12 },
     { header: "Giriş Operatörü", key: "checkinOperator", width: 22 },
@@ -67,11 +69,15 @@ export async function GET(req: Request) {
   ];
 
   let totalFee = 0;
+  let totalTip = 0;
   let totalDuration = 0;
 
   sessions.forEach((s: any) => {
     totalFee += s.feeCents || 0;
+    totalTip += s.tipCents || 0;
     totalDuration += s.durationMinutes || 0;
+    const feeCents = s.feeCents || 0;
+    const tipCents = s.tipCents || 0;
     sheet.addRow({
       ticketNumber: s.ticketNumber,
       plateNumber: s.plateNumber,
@@ -79,7 +85,9 @@ export async function GET(req: Request) {
       checkinAt: s.checkinAt ? format(new Date(s.checkinAt), "dd.MM.yyyy HH:mm") : "",
       checkoutAt: s.checkoutAt ? format(new Date(s.checkoutAt), "dd.MM.yyyy HH:mm") : "",
       durationMinutes: s.durationMinutes || 0,
-      fee: ((s.feeCents || 0) / 100).toFixed(2),
+      fee: (feeCents / 100).toFixed(2),
+      tip: (tipCents / 100).toFixed(2),
+      total: ((feeCents + tipCents) / 100).toFixed(2),
       paymentMethod: s.paymentMethod == "CASH" ? "NAKİT" : "KREDİ KARTI",
       pricingTier: s.pricingTier || "STANDARD",
       checkinOperator: (s.checkinOperator as any)?.name || "-",
@@ -91,7 +99,9 @@ export async function GET(req: Request) {
   sheet.addRow({
     ticketNumber: "Toplam",
     durationMinutes: totalDuration,
-    fee: (totalFee / 100).toFixed(2)
+    fee: (totalFee / 100).toFixed(2),
+    tip: (totalTip / 100).toFixed(2),
+    total: ((totalFee + totalTip) / 100).toFixed(2)
   });
 
   const ab = await workbook.xlsx.writeBuffer();

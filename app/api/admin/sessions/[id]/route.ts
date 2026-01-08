@@ -23,10 +23,11 @@ export async function PATCH(
 
   const { id } = await params;
   const body = await req.json();
-  const { paymentMethod, pricingTier, feeCents, plateNumber } = body as {
+  const { paymentMethod, pricingTier, feeCents, tipCents, plateNumber } = body as {
     paymentMethod?: "CASH" | "CARD";
     pricingTier?: "STANDARD" | "BRONZE" | "SILVER" | "GOLD";
     feeCents?: number;
+    tipCents?: number;
     plateNumber?: string;
   };
 
@@ -39,9 +40,12 @@ export async function PATCH(
   if (typeof feeCents === "number" && !Number.isNaN(feeCents)) {
     record.feeCents = feeCents;
   }
-    if (plateNumber && plateNumber.trim()) {
-      record.plateNumber = plateNumber.trim().toUpperCase();
-    }
+  if (typeof tipCents === "number" && !Number.isNaN(tipCents)) {
+    record.tipCents = Math.max(0, Math.round(tipCents));
+  }
+  if (plateNumber && plateNumber.trim()) {
+    record.plateNumber = plateNumber.trim().toUpperCase();
+  }
   await record.save();
 
   return NextResponse.json({ session: record });
